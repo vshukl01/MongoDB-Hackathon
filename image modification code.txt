@@ -1,0 +1,122 @@
+import imageio.v3 as iio
+import matplotlib.pyplot as plt
+import matplotlib.image as img
+import numpy as np
+from sklearn.cluster import KMeans
+import skimage as ski
+import math
+from collections import Counter
+import os
+import time
+plt.axis('off')
+for l in os.listdir("Downloads/jpegs"):
+    if (l!=".DS_Store"):
+        print(l)
+    
+        image = iio.imread(uri="Downloads/jpegs/"+l)
+        #image2 = image.copy()
+        i = 0
+        simp_val = 7
+        rev_val = int(255/simp_val)
+        img_arr = image
+        myMap = dict()
+        image3 = image.copy()
+
+        while i < len(image):
+            myMap[i]=dict()
+            k = 0
+            while k < len(image[i]):
+                myMap[i][k]=False
+                j = 0
+                while j < 3:
+                    #print(image[i][k][j], end = " ")
+                    #image[i][k][j]= min(int(image[i][k][j]/rev_val)*rev_val,255)
+                    image[i][k][j]= min(int(image[i][k][j]/rev_val)*rev_val,255)
+
+                    #print(image[i][k][j])
+                    j+=1
+                k+=1
+                #break
+            i+=1
+        restart = 1
+
+        image2 = image.copy()
+        uncheckedX = range(len(image))
+        uncheckedY = range(len(image[0]))
+        runcount = 0
+        n = len(image)
+        while (restart == 1 and runcount < 1):
+            start = time.time()
+            runcount+=1
+            restart = 0
+            i = 0
+            j = 0
+            k = 0
+            print("\nrun: "+str(runcount))
+
+            while i < len(image):
+                if (i%100 == 0):
+                    print(str(i)+"/"+str(n), end = " ")
+                k = 0
+                while k < len(image[i]):
+                    if myMap[i][k]==False:
+                        mylist = []
+                        if (i == 0):
+                            mylist.append(image[i][k])
+                        else:
+                            mylist.append(image[i-1][k])
+                        
+                        if (i == len(image)-1):
+                            mylist.append(image[i][k])
+                        else:
+                            mylist.append(image[i+1][k])
+        
+                                                
+                        if (k == 0):
+                            mylist.append(image[i][k])
+                        else:
+                            mylist.append(image[i][k-1])
+                            
+                        if (k == len(image[0])-1):
+                            mylist.append(image[i][k])
+                        else:
+                            mylist.append(image[i][k+1])
+                        m = 0
+                        mylist2 = mylist.copy()
+                        while m < 4:
+                            mylist[m] = str(mylist[m])
+                            m+=1
+                        #print(mylist)
+    
+                        
+                        mostCommon = Counter(mylist).most_common(2)
+                        if (mostCommon[0][1]>=3):
+                            if (str(image[i][k])!=mostCommon[0][0]):
+                                myMap[i][k] = True
+                                image[i][k] = np.fromstring(mostCommon[0][0][1:-1], dtype=int, sep=' ')
+                                restart = 1
+                        elif (mostCommon[0][1]==2 and mostCommon[1][1]==2):
+                            if (str(image[i][k])!=mostCommon[0][0] and str(image[i][k])!=mostCommon[1][0]):
+                                image[i][k] = np.fromstring(mostCommon[0][0][1:-1], dtype=int, sep=' ')
+                                restart = 1
+                        elif (mostCommon[0][1]==2 and mostCommon[1][1]==1):
+                            if (str(image[i][k])!=mostCommon[0][0]):
+                                image[i][k] = np.fromstring(mostCommon[0][0][1:-1], dtype=int, sep=' ')
+                                restart = 1
+                        elif (mostCommon[0][1]==1):
+                            if (image[i][k]!= mylist2).any().all():
+                                image[i][k] = mylist2[(i+k)%4]
+                                restart = 1
+
+
+                    k+=1
+                i+=1
+            end = time.time()
+            print(end - start)
+        plt.imshow(image)
+        rowMoves = [-1, 1, 0, 0]
+        colMoves = [0, 0, -1, 1]
+        queue = [[0,0]]
+        iio.imwrite("Downloads/edit-"+str(end)[-4:]+".png",image)
+        iio.imwrite("Downloads/old-"+str(end)[-4:]+".png",image3)
+        #while (len)
